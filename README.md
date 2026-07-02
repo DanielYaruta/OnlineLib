@@ -1,7 +1,5 @@
 # Online Library Backend
 
-> **Бэкенд небольшой онлайн-библиотеки** на Spring Boot 3.x с ролевой моделью доступа и базовой аутентификацией.
-
 <p align="left">
   <img src="https://img.shields.io/badge/Java-17-ED8B00?style=flat-square&logo=openjdk&logoColor=white" />
   <img src="https://img.shields.io/badge/Spring%20Boot-3.3.4-6DB33F?style=flat-square&logo=springboot&logoColor=white" />
@@ -11,6 +9,8 @@
   <img src="https://img.shields.io/badge/Maven-C71A36?style=flat-square&logo=apachemaven&logoColor=white" />
   <img src="https://img.shields.io/badge/Lombok-BC4521?style=flat-square&logo=lombok&logoColor=white" />
 </p>
+
+> **Бэкенд небольшой онлайн-библиотеки** на Spring Boot 3.x с ролевой моделью доступа и базовой аутентификацией.
 
 Проект реализует REST API для системы, в которой есть два типа пользователей:
 - **USER (читатель)** — может просматривать каталог и брать книги
