@@ -1,5 +1,13 @@
 # Online Library Backend
 
+> **Бэкенд небольшой онлайн-библиотеки** на Spring Boot 3.x с ролевой моделью доступа и базовой аутентификацией.
+
+Проект реализует REST API для системы, в которой есть два типа пользователей:
+- **USER (читатель)** — может просматривать каталог и брать книги
+- **ADMIN (библиотекарь)** — управляет фондом и пользователями
+
+Аутентификация построена на HTTP Basic Auth с хранением паролей в BCrypt. Все данные хранятся в H2 in-memory базе — никаких внешних зависимостей для запуска не нужно.
+
 Spring Boot 3.x REST API for a small online library with two user roles: **USER** (readers) and **ADMIN** (librarians). Authentication is HTTP Basic; all data lives in an H2 in-memory database.
 
 ## Tech Stack
