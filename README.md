@@ -2,23 +2,22 @@
 
 > **Бэкенд небольшой онлайн-библиотеки** на Spring Boot 3.x с ролевой моделью доступа и базовой аутентификацией.
 
+<p align="left">
+  <img src="https://img.shields.io/badge/Java-17-ED8B00?style=flat-square&logo=openjdk&logoColor=white" />
+  <img src="https://img.shields.io/badge/Spring%20Boot-3.3.4-6DB33F?style=flat-square&logo=springboot&logoColor=white" />
+  <img src="https://img.shields.io/badge/Spring%20Security-6-6DB33F?style=flat-square&logo=springsecurity&logoColor=white" />
+  <img src="https://img.shields.io/badge/Spring%20Data%20JPA-6DB33F?style=flat-square&logo=spring&logoColor=white" />
+  <img src="https://img.shields.io/badge/H2-in--memory-4479A1?style=flat-square&logo=h2&logoColor=white" />
+  <img src="https://img.shields.io/badge/Maven-C71A36?style=flat-square&logo=apachemaven&logoColor=white" />
+  <img src="https://img.shields.io/badge/Lombok-BC4521?style=flat-square&logo=lombok&logoColor=white" />
+</p>
+
 Проект реализует REST API для системы, в которой есть два типа пользователей:
 - **USER (читатель)** — может просматривать каталог и брать книги
 - **ADMIN (библиотекарь)** — управляет фондом и пользователями
 
 Аутентификация построена на HTTP Basic Auth с хранением паролей в BCrypt. Все данные хранятся в H2 in-memory базе — никаких внешних зависимостей для запуска не нужно.
 
-## Стек технологий
-
-| Слой          | Технология                              |
-|---------------|-----------------------------------------|
-| Язык          | Java 17                                 |
-| Фреймворк     | Spring Boot 3.3.4                       |
-| Безопасность  | Spring Security 6 (HTTP Basic, BCrypt)  |
-| Persistence   | Spring Data JPA + H2 in-memory          |
-| Валидация     | Jakarta Bean Validation                 |
-| Boilerplate   | Lombok                                  |
-| Сборка        | Maven                                   |
 
 ## Быстрый старт
 
