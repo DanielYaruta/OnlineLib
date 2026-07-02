@@ -1,0 +1,78 @@
+{
+  "info": {
+    "name": "OnlineLib API",
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "description": "Online Library Backend — Spring Boot REST API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Register user",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"alice\",\n  \"password\": \"secret123\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/register",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["register"]
+        },
+        "description": "Register a new reader (ROLE_USER). Returns 201 with UserResponse. Returns 409 if username is taken, 400 if validation fails."
+      }
+    },
+    {
+      "name": "GET /user/hello — as reader",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "auth": {
+          "type": "basic",
+          "basic": [
+            { "key": "username", "value": "alice", "type": "string" },
+            { "key": "password", "value": "secret123", "type": "string" }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8080/user/hello",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["user", "hello"]
+        },
+        "description": "Accessible by ROLE_USER and ROLE_ADMIN. Returns 200 with greeting. Returns 401 without credentials, 403 if no role match."
+      }
+    },
+    {
+      "name": "GET /admin/hello — as admin",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "auth": {
+          "type": "basic",
+          "basic": [
+            { "key": "username", "value": "admin", "type": "string" },
+            { "key": "password", "value": "admin", "type": "string" }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8080/admin/hello",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["admin", "hello"]
+        },
+        "description": "Accessible by ROLE_ADMIN only. Returns 200 with greeting. Returns 403 for ROLE_USER."
+      }
+    }
+  ]
+}
