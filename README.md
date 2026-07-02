@@ -8,155 +8,153 @@
 
 Аутентификация построена на HTTP Basic Auth с хранением паролей в BCrypt. Все данные хранятся в H2 in-memory базе — никаких внешних зависимостей для запуска не нужно.
 
-Spring Boot 3.x REST API for a small online library with two user roles: **USER** (readers) and **ADMIN** (librarians). Authentication is HTTP Basic; all data lives in an H2 in-memory database.
+## Стек технологий
 
-## Tech Stack
+| Слой          | Технология                              |
+|---------------|-----------------------------------------|
+| Язык          | Java 17                                 |
+| Фреймворк     | Spring Boot 3.3.4                       |
+| Безопасность  | Spring Security 6 (HTTP Basic, BCrypt)  |
+| Persistence   | Spring Data JPA + H2 in-memory          |
+| Валидация     | Jakarta Bean Validation                 |
+| Boilerplate   | Lombok                                  |
+| Сборка        | Maven                                   |
 
-| Layer       | Technology                              |
-|-------------|----------------------------------------|
-| Language    | Java 17                                 |
-| Framework   | Spring Boot 3.3.4                       |
-| Security    | Spring Security 6 (HTTP Basic, BCrypt) |
-| Persistence | Spring Data JPA + H2 in-memory         |
-| Validation  | Jakarta Bean Validation                 |
-| Boilerplate | Lombok                                  |
-| Build       | Maven                                   |
-
-## Quick Start
+## Быстрый старт
 
 ```bash
 mvn spring-boot:run
 ```
 
-The app starts on **http://localhost:8080**.
+Приложение запускается на **http://localhost:8080**.
 
-H2 Console (dev only): **http://localhost:8080/h2-console**
+H2 Console (только для разработки): **http://localhost:8080/h2-console**
 - JDBC URL: `jdbc:h2:mem:onlinelib`
-- User: `sa` · Password: *(empty)*
+- User: `sa` · Password: *(пусто)*
 
-## Default Credentials
+## Учётные данные по умолчанию
 
-| Username | Password | Role       |
-|----------|----------|------------|
-| `admin`  | `admin`  | ROLE_ADMIN |
+| Пользователь | Пароль | Роль       |
+|--------------|--------|------------|
+| `admin`      | `admin`| ROLE_ADMIN |
 
-Created automatically on startup by `DataInitializer` if not present.
+Создаётся автоматически при старте через `DataInitializer`, если пользователь ещё не существует.
 
-## Endpoints
+## Эндпоинты
 
-| Method | Path         | Auth       | Access           | Description              |
-|--------|--------------|------------|------------------|--------------------------|
-| POST   | /register    | None       | Public           | Register a new reader    |
-| GET    | /user/hello  | HTTP Basic | USER, ADMIN      | Greeting for readers     |
-| GET    | /admin/hello | HTTP Basic | ADMIN only       | Greeting for librarians  |
+| Метод | Путь         | Авторизация | Доступ           | Описание                       |
+|-------|--------------|-------------|------------------|--------------------------------|
+| POST  | /register    | Нет         | Публичный        | Регистрация нового читателя    |
+| GET   | /user/hello  | HTTP Basic  | USER, ADMIN      | Приветствие для читателей      |
+| GET   | /admin/hello | HTTP Basic  | Только ADMIN     | Приветствие для библиотекарей  |
 
-## cURL Examples
+## Примеры cURL
 
-### Register a new reader → 201 Created
+### Регистрация нового читателя → 201 Created
 ```bash
 curl -s -X POST http://localhost:8080/register \
   -H "Content-Type: application/json" \
   -d '{"username": "alice", "password": "secret123"}' | jq
 ```
 
-### Access /user/hello as reader → 200 OK
+### Запрос /user/hello с авторизацией → 200 OK
 ```bash
 curl -s -u alice:secret123 http://localhost:8080/user/hello
 ```
 
-### Access /user/hello without credentials → 401 Unauthorized
+### Запрос /user/hello без авторизации → 401 Unauthorized
 ```bash
 curl -i http://localhost:8080/user/hello
 ```
 
-### Reader tries /admin/hello → 403 Forbidden
+### Читатель пробует /admin/hello → 403 Forbidden
 ```bash
 curl -i -u alice:secret123 http://localhost:8080/admin/hello
 ```
 
-### Admin accesses /admin/hello → 200 OK
+### Админ заходит в /admin/hello → 200 OK
 ```bash
 curl -s -u admin:admin http://localhost:8080/admin/hello
 ```
 
-### Register duplicate username → 409 Conflict
+### Регистрация с занятым username → 409 Conflict
 ```bash
 curl -s -X POST http://localhost:8080/register \
   -H "Content-Type: application/json" \
   -d '{"username": "alice", "password": "secret123"}' | jq
 ```
 
-### Validation failure (short username/password) → 400 Bad Request
+### Ошибка валидации (короткий username/пароль) → 400 Bad Request
 ```bash
 curl -s -X POST http://localhost:8080/register \
   -H "Content-Type: application/json" \
   -d '{"username": "ab", "password": "123"}' | jq
 ```
 
-## Running Tests
+## Запуск тестов
 
 ```bash
 mvn test
 ```
 
-All tests including full build:
+Полная сборка со всеми тестами:
 ```bash
 mvn clean install
 ```
 
-## Architecture
+## Архитектура
 
-### Why DTOs instead of returning Entities directly?
+### Почему DTO, а не Entity наружу?
 
-The `User` entity is a database model — it contains the hashed password and is tightly coupled to the schema. Returning it directly would:
-- Leak the password hash in the JSON response
-- Couple the API contract to the DB schema (a column rename breaks your API)
-- Risk serialization problems with JPA lazy-loaded relations
+`User` — это модель базы данных, которая содержит хеш пароля и жёстко привязана к схеме. Возвращать её напрямую значит:
+- Отдать хеш пароля в JSON-ответе
+- Привязать API-контракт к схеме БД (переименование колонки ломает API)
+- Получить проблемы с сериализацией JPA lazy-loaded отношений
 
-`UserResponse` is a stable API contract independent of the DB. `RegisterRequest` is a validation boundary — annotations live there, not on the entity.
+`UserResponse` — стабильный API-контракт, независимый от БД. `RegisterRequest` — граница валидации: аннотации живут на DTO, а не на Entity.
 
-### Why a Service Layer?
+### Почему Service Layer?
 
-Controllers should only handle HTTP concerns (parsing, status codes, routing). Business logic belongs in `UserService`:
-- Duplicate username check
-- Password hashing
-- Role assignment
+Контроллер занимается только HTTP-транспортом (парсинг, статус-коды, маршрутизация). Бизнес-логика — в `UserService`:
+- Проверка занятости username
+- Хеширование пароля
+- Назначение роли
 
-This makes business logic independently unit-testable without starting an HTTP server or touching a database (see `UserServiceTest`).
+Это позволяет тестировать бизнес-логику юнит-тестами без поднятия HTTP-сервера и обращения к БД (см. `UserServiceTest`).
 
-### Where does Spring Security check roles?
+### Где Spring Security проверяет роль?
 
-1. **`BasicAuthenticationFilter`** reads the `Authorization: Basic …` header, decodes credentials, and calls `UserDetailsServiceImpl.loadUserByUsername()` to load the user from the DB. It wraps the user in a `UsernamePasswordAuthenticationToken` and stores it in the `SecurityContextHolder`.
+1. **`BasicAuthenticationFilter`** читает заголовок `Authorization: Basic …`, декодирует учётные данные и вызывает `UserDetailsServiceImpl.loadUserByUsername()` для загрузки пользователя из БД. Оборачивает его в `UsernamePasswordAuthenticationToken` с authorities и кладёт в `SecurityContextHolder`.
 
-2. **`AuthorizationFilter`** (later in the chain) compares the `GrantedAuthority` list built from `user.role` (e.g. `ROLE_ADMIN`) against the rules declared in `SecurityFilterChain` — `hasRole("ADMIN")` checks for the `ROLE_ADMIN` authority.
+2. **`AuthorizationFilter`** (позже в цепочке) сверяет список `GrantedAuthority` из токена с правилами `SecurityFilterChain` — `hasRole("ADMIN")` ищет authority `ROLE_ADMIN`.
 
-3. Both steps happen **before** the request reaches any controller. For unauthorized or forbidden requests, Spring Security short-circuits and returns 401/403 directly — controllers are never invoked.
+3. Оба шага происходят **до контроллера**. При 401/403 Spring Security отвечает сам — контроллеры не вызываются вообще.
 
-## Project Structure
+## Структура проекта
 
 ```
 src/main/java/com/example/onlinelib/
 ├── OnlineLibApplication.java
 ├── config/
-│   └── DataInitializer.java      # Creates default admin on startup
+│   └── DataInitializer.java          # Создаёт admin при старте
 ├── controller/
-│   ├── AuthController.java        # POST /register
-│   ├── UserController.java        # GET /user/hello
-│   └── AdminController.java       # GET /admin/hello
+│   ├── AuthController.java            # POST /register
+│   ├── UserController.java            # GET /user/hello
+│   └── AdminController.java           # GET /admin/hello
 ├── dto/
-│   ├── RegisterRequest.java       # Validated input DTO
-│   ├── UserResponse.java          # Safe output DTO (no password)
-│   └── ErrorResponse.java         # Unified error format
+│   ├── RegisterRequest.java           # Входной DTO с валидацией
+│   ├── UserResponse.java              # Выходной DTO (без пароля)
+│   └── ErrorResponse.java             # Единый формат ошибок
 ├── entity/
-│   └── User.java                  # JPA entity
+│   └── User.java                      # JPA-сущность
 ├── exception/
 │   ├── UsernameAlreadyExistsException.java
 │   └── GlobalExceptionHandler.java
 ├── repository/
 │   └── UserRepository.java
 ├── security/
-│   ├── SecurityConfig.java        # BCrypt bean + SecurityFilterChain
+│   ├── SecurityConfig.java            # BCrypt бин + SecurityFilterChain
 │   └── UserDetailsServiceImpl.java
 └── service/
-    └── UserService.java           # Registration business logic
+    └── UserService.java               # Бизнес-логика регистрации
 ```
